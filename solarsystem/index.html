@@ -1,0 +1,808 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Solar System with Labels</title>
+  <style>
+    * { margin: 0; padding: 0; }
+    body { overflow: hidden; background: black; }
+    canvas { display: block; }
+    #sliderContainer {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+      background: rgba(0,0,0,0.5);
+      padding: 10px;
+      border-radius: 8px;
+    }
+    input[type=range] { width: 300px; }
+    .label-container { pointer-events:none; display:block; }
+    .label {
+      color: white;
+      font-size: 14px;
+      font-family: Arial,sans-serif;
+      background: rgba(0,0,0,0.5);
+      padding: 2px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+      transform-origin: center bottom;
+      transition: transform 0.12s linear, opacity 0.2s linear;
+    }
+  </style>
+</head>
+<body>
+<div id="sliderContainer">
+  <label>🌍 Earth Orbital Period (seconds): <span id="scaleValue">1000</span></label><br>
+  <input id="scaleSlider" type="range" min="0.1" max="10000" value="1000" step="1">
+</div>
+<div id="colorContainer" style="position:absolute; top:70px; left:50%; transform:translateX(-50%); color:white; font-family:sans-serif; background:rgba(0,0,0,0.5); padding:10px; border-radius:8px;">
+  <label>Background Color: <input type="color" id="bgColorPicker" value="#000011"></label>
+</div>
+
+<script type="module">
+import * as THREE from "https://cdn.skypack.dev/three@0.129.0";
+import { OrbitControls } from "https://cdn.skypack.dev/three@0.129.0/examples/jsm/controls/OrbitControls.js";
+import { CSS2DRenderer, CSS2DObject } from "https://cdn.skypack.dev/three@0.129.0/examples/jsm/renderers/CSS2DRenderer.js";
+import { EffectComposer } from 'https://cdn.skypack.dev/three@0.129.0/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'https://cdn.skypack.dev/three@0.129.0/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'https://cdn.skypack.dev/three@0.129.0/examples/jsm/postprocessing/UnrealBloomPass.js';
+
+// --- Scene & Camera ---
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 10000);
+camera.position.set(50,10,0);
+
+// --- Renderer ---
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// --- Label Renderer ---
+const labelRenderer = new CSS2DRenderer();
+labelRenderer.setSize(window.innerWidth, window.innerHeight);
+labelRenderer.domElement.style.position = "absolute";
+labelRenderer.domElement.style.top = "0";
+labelRenderer.domElement.style.left = "0";
+labelRenderer.domElement.style.pointerEvents = "none";
+document.body.appendChild(labelRenderer.domElement);
+
+// --- Controls ---
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+// --- Lights ---
+scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+scene.add(new THREE.PointLight(0xffffff, 2, 3000));
+
+
+const starGeometry = new THREE.BufferGeometry();
+const starPositions = [];
+for (let i = 0; i < 1000; i++) {
+  const x = (Math.random() - .5) * 8000;
+  const y = (Math.random() - 0.5) * 9000;
+  const z = (Math.random() - 0.5) * 8000;
+  starPositions.push(x, y, z);
+}
+starGeometry.setAttribute("position", new THREE.Float32BufferAttribute(starPositions, 3));
+const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 2 });
+const stars = new THREE.Points(starGeometry, starMaterial);
+scene.add(stars);
+
+
+
+// --- Ellipse Ring ---
+function createEllipseRing(radiusX, radiusY, centrex=0, segments=200) {
+  const points = [];
+  for (let i = 0; i <= segments; i++) {
+    const theta = (i/segments) * 2 * Math.PI;
+    points.push(new THREE.Vector3(radiusX*Math.cos(theta)+centrex, 0, radiusY*Math.sin(theta)));
+  }
+  const geometry = new THREE.BufferGeometry().setFromPoints(points);
+  const material = new THREE.LineBasicMaterial({ color: 0x00AEEF, transparent:true, opacity:0.2 });
+  return new THREE.LineLoop(geometry, material);
+}
+
+// --- Orbits data ---
+const orbitsData = [
+  { a: 9.097,   b: 8.902594,  cx: -0.361 },   
+  { a: 16.998,  b: 16.997610, cx: -0.011 },   
+  { a: 23.5,    b: 23.496719, cx: -0.392 },   
+  { a: 35.806,  b: 35.649507, cx: -0.667 },   
+  { a: 122.279, b: 122.135775, cx: -2.519 },  
+  { a: 224.121, b: 223.795666, cx: -8.436 },  
+  { a: 450.995, b: 450.491123, cx: -9.868 },  
+  { a: 706.621, b: 706.594926, cx: -5.462 },  
+];
+orbitsData.forEach(o => scene.add(createEllipseRing(o.a,o.b,o.cx)));
+
+// --- Textures & Planets ---
+const textureLoader = new THREE.TextureLoader();
+function loadPlanetTexture(texture, radius) {
+  const geo = new THREE.SphereGeometry(radius, 32, 32);
+  const mat = new THREE.MeshStandardMaterial({ 
+    map: textureLoader.load(texture),
+    roughness: 1,
+    metalness: 0,
+    bumpMap: textureLoader.load(texture),
+    bumpScale: 0.05
+
+   });
+  return new THREE.Mesh(geo, mat);
+}
+
+// --- Orbital periods normalized to Earth = 1 ---
+const ratios = {
+  mercury: 0.241,
+  venus: 0.615,
+  earth: 1,
+  mars: 1.88,
+  jupiter: 11.86,
+  saturn: 29.46,
+  uranus: 84.01,
+  neptune: 164.8
+};
+
+// --- Planet day lengths in Earth days ---
+const planetDays = {
+  mercury: 58.65,
+  venus: 243,
+  earth: 1,
+  mars: 1.03,
+  jupiter: 0.413,
+  saturn: 0.444,
+  uranus: 0.718,
+  neptune: 0.671
+};
+const textureLoader1 = new THREE.TextureLoader();
+const fireTexture = textureLoader1.load('./sun.jpg');
+fireTexture.wrapS = fireTexture.wrapT = THREE.RepeatWrapping;
+// Sun Material
+const sunMaterial = new THREE.MeshStandardMaterial({
+  map: fireTexture,
+  emissive: new THREE.Color(0xffaa00),
+  emissiveMap: fireTexture,
+  emissiveIntensity: 2
+});
+
+// Sun Mesh
+const sunGeometry = new THREE.SphereGeometry(5, 18, 18);
+const sunMesh = new THREE.Mesh(sunGeometry, sunMaterial);
+scene.add(sunMesh);
+const sunLight = new THREE.PointLight(0xffddaa, 10, 1000);
+sunLight.position.copy(sunMesh.position);
+scene.add(sunLight);
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+composer.addPass(new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85));
+
+// --- Planets array ---
+const planets = [
+  { mesh: loadPlanetTexture("./8k_sun.jpg", 4.9), key: "sun" },
+  { mesh: loadPlanetTexture("./8k_mercury.jpg", 1), key: "mercury" },
+  { mesh: loadPlanetTexture("./8k_venus_surface.jpg", 2.3), key: "venus" },
+  { mesh: loadPlanetTexture("./earth_day_4096.jpg", 2.3), key: "earth" },
+  { mesh: loadPlanetTexture("./8k_mars.jpg", 2), key: "mars" },
+  { mesh: loadPlanetTexture("./8k_jupiter.jpg", 4), key: "jupiter" },
+  { mesh: loadPlanetTexture("./8k_saturn.jpg", 4), key: "saturn" },
+  { mesh: loadPlanetTexture("./2k_uranus.jpg", 3), key: "uranus" },
+  { mesh: loadPlanetTexture("./2k_neptune.jpg", 3), key: "neptune" }
+];
+planets.forEach(p => scene.add(p.mesh));
+
+// --- Per-planet label X/Y distances ---
+const labelSettings = {
+  sun:     { x: 400, y: 80 },
+  mercury: { x: 250, y: 20 },
+  venus:   { x: 250, y: 25 },
+  earth:   { x: 250, y: 30 },
+  mars:    { x: 300, y: 35 },
+  jupiter: { x: 1500, y: 50 },
+  saturn:  { x: 1600, y: 60 },
+  uranus:  { x: 1700, y: 70 },
+  neptune: { x: 1800, y: 150 }
+};
+
+// --- Add labels ---
+planets.forEach(p => {
+  const div = document.createElement("div");
+  div.className = "label";
+  div.innerText = p.key.charAt(0).toUpperCase() + p.key.slice(1);
+
+  const label = new CSS2DObject(div);
+  label.position.set(0, (p.mesh.geometry.parameters.radius )+1.5, 0); 
+  p.mesh.add(label);
+
+  p.labelDiv = div;
+  p.labelX = labelSettings[p.key].x;
+  p.labelY = labelSettings[p.key].y;
+});
+
+// --- Asteroid Belt ---
+const stones = [];
+function createStone(radius, periodRatio, color=0xaaaaaa, size=0.2) {
+  const geo = new THREE.SphereGeometry(size, 8, 8);
+  const mat = new THREE.MeshStandardMaterial({ color });
+  const theta = Math.random()*2*Math.PI;
+  const m = new THREE.Mesh(geo, mat);
+  m.position.set(radius*Math.cos(theta), 0, radius*Math.sin(theta));
+  scene.add(m);
+  stones.push({ mesh: m, angle: theta, radius, periodRatio });
+}
+for(let i=0;i<100;i++) createStone(50 + Math.random()*10, 4 + Math.random()*2);
+for(let i=0;i<50;i++) createStone(63 + Math.random()*10, 4 + Math.random()*2);
+for(let i=0;i<50;i++) createStone(65 + Math.random()*10, 4 + Math.random()*2);
+for(let i=0;i<900;i++) createStone(55 + Math.random()*10, 4 + Math.random()*2);
+for(let i=0;i<100;i++) createStone(60 + Math.random()*10, 4 + Math.random()*2);
+for(let i=0;i<6000;i++) createStone(730 + Math.random()*40, 200 + Math.random()*100, 0x8888ff, 0.25);
+// --- Angles ---
+const angles = new Array(planets.length).fill(0);
+
+// --- Period scale slider ---
+let periodScale = 1000; 
+const scaleSlider = document.getElementById("scaleSlider");
+const scaleValue = document.getElementById("scaleValue");
+scaleSlider.addEventListener("input", e => {
+  periodScale = parseFloat(e.target.value);
+  scaleValue.innerText = periodScale;
+});
+
+
+const bgGeometry = new THREE.SphereGeometry(10000, 30, 30)
+const bgMaterial = new THREE.MeshBasicMaterial({
+  color: 0x050505,     // base dark blue
+  // color: 0x88ccff,     // base dark blue
+  side: THREE.BackSide, // render inside of sphere
+});
+document.getElementById("bgColorPicker").addEventListener("input", e=>{
+  const color = new THREE.Color(e.target.value);
+  bgMaterial.color = color;
+  scene.fog.color = color;
+  renderer.setClearColor(color);
+});
+const background = new THREE.Mesh(bgGeometry, bgMaterial);
+scene.add(background);
+scene.fog = new THREE.FogExp2(0x000011, 0.00015);
+renderer.setClearColor(new THREE.Color(0x000010)); // dark top
+
+
+// --- Animation loop ---
+function animate(){
+  requestAnimationFrame(animate);
+// --- Rotate the Sun relative to Earth's orbital position ---
+const earthIndex = planets.findIndex(p => p.key === "earth");
+if (earthIndex > -1) {
+  const earth = planets[earthIndex];
+  const sunVector = new THREE.Vector3().subVectors(earth.mesh.position, sunMesh.position);
+  const angleToEarth = Math.atan2(sunVector.z, sunVector.x);
+
+  // Slowly rotate the Sun so its face follows the Earth
+  sunMesh.rotation.y = angleToEarth + Math.PI / 2;
+
+  // Optional: animate texture offset to keep it visually dynamic
+  fireTexture.offset.y += 0.0005;
+}
+
+  // Planet orbit + spin
+  for(let i=1;i<planets.length;i++){
+    const key = planets[i].key;
+    if(key){
+      const period = ratios[key]*periodScale; 
+      const speed = period>0 ? 2*Math.PI/period : 0;
+      angles[i]+=speed;
+      const {a,b,cx} = orbitsData[i-1];
+      planets[i].mesh.position.set(a*Math.cos(angles[i])+cx,0,b*Math.sin(angles[i]));
+
+      const rotationsPerOrbit = ratios[key] * 365 / planetDays[key];
+      planets[i].mesh.rotation.y += rotationsPerOrbit * speed;
+    }
+  }
+
+controls.minDistance = 5;   // how close camera can zoom in
+controls.maxDistance = 1100;  // how far camera can zoom out
+
+  // Asteroids
+  stones.forEach(s=>{
+    const speed = 2*Math.PI/(s.periodRatio*periodScale);
+    s.angle+=speed;
+    s.mesh.position.set(s.radius*Math.cos(s.angle),0,s.radius*Math.sin(s.angle));
+  });
+
+  // Update labels
+  planets.forEach(p => {
+    if(p.labelDiv){
+      const distance = camera.position.distanceTo(p.mesh.position);
+      if(distance > p.labelX){
+        p.labelDiv.style.opacity = "0";
+      } else {
+        p.labelDiv.style.opacity = "1";
+        if(distance < p.labelY){
+          let scale = p.labelY / distance;
+          scale = Math.min(scale, 3);
+          p.labelDiv.style.transform = `scale(${scale})`;
+        } else {
+          p.labelDiv.style.transform = "scale(1)";
+        }
+      }
+    }
+  });
+
+  renderer.render(scene, camera);
+  labelRenderer.render(scene, camera);
+  controls.update();
+}
+animate();
+
+// --- Resize ---
+window.addEventListener('resize', ()=>{
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  labelRenderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Solar System with Labels</title>
+  <style>    canvas { display: block; }
+   * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { overflow: hidden; background: black; font-family: Arial, sans-serif; color: white; }
+
+  /* Centered slider at top middle */
+  #sliderContainer {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    background: rgba(0,0,0,0.25);
+    padding: 8px 12px;
+    border-radius: 8px;
+    backdrop-filter: blur(4px);
+  }
+  input[type=range] {
+    width: 300px;
+    cursor: pointer;
+  }
+
+  /* Top-right vertical controls */
+  #topRightControls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-end;
+  }
+
+  .control-box {
+    background: rgba(0,0,0,0.25);
+    padding: 6px 10px;
+    border-radius: 6px;
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  input[type=color] {
+    width: 30px;
+    height: 24px;
+    border: none;
+    cursor: pointer;
+  }
+
+  input[type=checkbox] {
+    transform: scale(1.2);
+    cursor: pointer;
+  }
+    .label-container { pointer-events:none; display:block; }
+    .label {
+      color: white;
+      font-size: 14px;
+      font-family: Arial,sans-serif;
+      background: rgba(0,0,0,0.5);
+      padding: 2px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+      transform-origin: center bottom;
+      transition: transform 0.12s linear, opacity 0.2s linear;
+    }
+    
+  </style>
+</head>
+<body>
+  <div id="sliderContainer">
+    <label>🌍 Earth Orbital Period (s): <span id="scaleValue">1000</span></label><br>
+    <input id="scaleSlider" type="range" min="1" max="10000000" value="1000000" step="100">
+  </div>
+
+  <!-- Top-right vertical controls -->
+  <div id="topRightControls">
+    <div class="control-box">
+      <label>Background:</label>
+      <input type="color" id="bgColorPicker" value="#000011">
+    </div>
+    <div class="control-box">
+      <input type="checkbox" id="toggleSunLight" checked>
+      <label>Sun Light On</label>
+    </div>
+  </div>
+
+<script type="module">
+import * as THREE from "https://cdn.skypack.dev/three@0.129.0";
+import { OrbitControls } from "https://cdn.skypack.dev/three@0.129.0/examples/jsm/controls/OrbitControls.js";
+import { CSS2DRenderer, CSS2DObject } from "https://cdn.skypack.dev/three@0.129.0/examples/jsm/renderers/CSS2DRenderer.js";
+import { EffectComposer } from 'https://cdn.skypack.dev/three@0.129.0/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'https://cdn.skypack.dev/three@0.129.0/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'https://cdn.skypack.dev/three@0.129.0/examples/jsm/postprocessing/UnrealBloomPass.js';
+
+// --- Scene & Camera ---
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 10000);
+camera.position.set(50,10,0);
+
+// --- Renderer ---
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// --- Label Renderer ---
+const labelRenderer = new CSS2DRenderer();
+labelRenderer.setSize(window.innerWidth, window.innerHeight);
+labelRenderer.domElement.style.position = "absolute";
+labelRenderer.domElement.style.top = "0";
+labelRenderer.domElement.style.left = "0";
+labelRenderer.domElement.style.pointerEvents = "none";
+document.body.appendChild(labelRenderer.domElement);
+
+// --- Controls ---
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+// --- Lights ---
+scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+scene.add(new THREE.PointLight(0xffffff, 2, 3000));
+
+
+const starGeometry = new THREE.BufferGeometry();
+const starPositions = [];
+for (let i = 0; i < 1000; i++) {
+  const x = (Math.random() - .5) * 8000;
+  const y = (Math.random() - 0.5) * 9000;
+  const z = (Math.random() - 0.5) * 8000;
+  starPositions.push(x, y, z);
+}
+starGeometry.setAttribute("position", new THREE.Float32BufferAttribute(starPositions, 3));
+const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 2 });
+const stars = new THREE.Points(starGeometry, starMaterial);
+scene.add(stars);
+
+
+
+// --- Ellipse Ring ---
+function createEllipseRing(radiusX, radiusY, centrex=0, segments=200) {
+  const points = [];
+  for (let i = 0; i <= segments; i++) {
+    const theta = (i/segments) * 2 * Math.PI;
+    points.push(new THREE.Vector3(radiusX*Math.cos(theta)+centrex, 0, radiusY*Math.sin(theta)));
+  }
+  const geometry = new THREE.BufferGeometry().setFromPoints(points);
+  const material = new THREE.LineBasicMaterial({ color: 0x00AEEF, transparent:true, opacity:0.2 });
+  return new THREE.LineLoop(geometry, material);
+}
+
+// --- Orbits data ---
+const orbitsData = [
+  { a: 9.097,   b: 8.902594,  cx: -0.361 },   
+  { a: 16.998,  b: 16.997610, cx: -0.011 },   
+  { a: 23.5,    b: 23.496719, cx: -0.392 },   
+  { a: 35.806,  b: 35.649507, cx: -0.667 },   
+  { a: 122.279, b: 122.135775, cx: -2.519 },  
+  { a: 224.121, b: 223.795666, cx: -8.436 },  
+  { a: 450.995, b: 450.491123, cx: -9.868 },  
+  { a: 706.621, b: 706.594926, cx: -5.462 },  
+];
+orbitsData.forEach(o => scene.add(createEllipseRing(o.a,o.b,o.cx)));
+
+// --- Textures & Planets ---
+const textureLoader = new THREE.TextureLoader();
+function loadPlanetTexture(texture, radius) {
+  const geo = new THREE.SphereGeometry(radius, 32, 32);
+  const mat = new THREE.MeshStandardMaterial({ 
+    map: textureLoader.load(texture),
+    roughness: 1,
+    metalness: 0,
+    bumpMap: textureLoader.load(texture),
+    bumpScale: 0.05
+
+   });
+  return new THREE.Mesh(geo, mat);
+}
+
+// --- Orbital periods normalized to Earth = 1 ---
+
+const textureLoader1 = new THREE.TextureLoader();
+const fireTexture = textureLoader1.load('./sun.jpg');
+fireTexture.wrapS = fireTexture.wrapT = THREE.RepeatWrapping;
+// Sun Material
+const sunMaterial = new THREE.MeshStandardMaterial({
+  map: fireTexture,
+  emissive: new THREE.Color(0xffaa00),
+  emissiveMap: fireTexture,
+  emissiveIntensity: 2
+});
+
+// Sun Mesh
+const sunGeometry = new THREE.SphereGeometry(5, 18, 18);
+const sunMesh = new THREE.Mesh(sunGeometry, sunMaterial);
+scene.add(sunMesh);
+const sunLight = new THREE.PointLight(0xffddaa, 3, 1000);
+sunLight.position.copy(sunMesh.position);
+scene.add(sunLight);
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+composer.addPass(new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85));
+
+// --- Planets array ---
+const planets = [
+  { mesh: loadPlanetTexture("./8k_sun.jpg", 4.9), key: "sun" },
+  { mesh: loadPlanetTexture("./8k_mercury.jpg", 1), key: "mercury" },
+  { mesh: loadPlanetTexture("./8k_venus_surface.jpg", 2.3), key: "venus" },
+  { mesh: loadPlanetTexture("./earth_day_4096.jpg", 2.3), key: "earth" },
+  { mesh: loadPlanetTexture("./8k_mars.jpg", 2), key: "mars" },
+  { mesh: loadPlanetTexture("./8k_jupiter.jpg", 4), key: "jupiter" },
+  { mesh: loadPlanetTexture("./8k_saturn.jpg", 4), key: "saturn" },
+  { mesh: loadPlanetTexture("./2k_uranus.jpg", 3), key: "uranus" },
+  { mesh: loadPlanetTexture("./2k_neptune.jpg", 3), key: "neptune" }
+];
+planets.forEach(p => scene.add(p.mesh));
+
+// --- Per-planet label X/Y distances ---
+const labelSettings = {
+  sun:     { x: 1700, y: 80 },
+  mercury: { x: 250, y: 20 },
+  venus:   { x: 250, y: 25 },
+  earth:   { x: 250, y: 30 },
+  mars:    { x: 300, y: 35 },
+  jupiter: { x: 1500, y: 50 },
+  saturn:  { x: 1600, y: 60 },
+  uranus:  { x: 1700, y: 70 },
+  neptune: { x: 1800, y: 150 }
+};
+
+// --- Add labels ---
+planets.forEach(p => {
+  const div = document.createElement("div");
+  div.className = "label";
+  div.innerText = p.key.charAt(0).toUpperCase() + p.key.slice(1);
+
+  const label = new CSS2DObject(div);
+  label.position.set(0, (p.mesh.geometry.parameters.radius )+1.5, 0); 
+  p.mesh.add(label);
+
+  p.labelDiv = div;
+  p.labelX = labelSettings[p.key].x;
+  p.labelY = labelSettings[p.key].y;
+});
+
+// --- Asteroid Belt ---
+const stones = [];
+function createStone(radius, periodRatio, color=0xaaaaaa, size=0.2) {
+  const geo = new THREE.SphereGeometry(size, 8, 8);
+  const mat = new THREE.MeshStandardMaterial({ color });
+  const theta = Math.random()*2*Math.PI;
+  const m = new THREE.Mesh(geo, mat);
+  m.position.set(radius*Math.cos(theta), 0, radius*Math.sin(theta));
+  scene.add(m);
+  stones.push({ mesh: m, angle: theta, radius, periodRatio });
+}
+for(let i=0;i<100;i++) createStone(50 + Math.random()*10, 4 + Math.random()*2);
+for(let i=0;i<50;i++) createStone(63 + Math.random()*10, 4 + Math.random()*2);
+for(let i=0;i<50;i++) createStone(65 + Math.random()*10, 4 + Math.random()*2);
+for(let i=0;i<900;i++) createStone(55 + Math.random()*10, 4 + Math.random()*2);
+for(let i=0;i<100;i++) createStone(60 + Math.random()*10, 4 + Math.random()*2);
+for(let i=0;i<6000;i++) createStone(730 + Math.random()*40, 200 + Math.random()*100, 0x8888ff, 0.25);
+// --- Angles ---
+const angles1= new Array(planets.length).fill(0);
+
+// --- Period scale slider ---
+let periodScale = 1000; 
+const scaleSlider = document.getElementById("scaleSlider");
+const scaleValue = document.getElementById("scaleValue");
+scaleSlider.addEventListener("input", e => {
+  periodScale = parseFloat(e.target.value);
+  scaleValue.innerText = periodScale;
+});
+
+const sunLightToggle = document.getElementById("toggleSunLight");
+sunLightToggle.addEventListener("change", () => {
+  sunLight.visible = sunLightToggle.checked;
+});
+
+
+// --- Function to create stone rings ---
+function createStoneRing(innerRadius, outerRadius, stoneCount, texture, opacity = 0.06) {
+  const ringGroup = new THREE.Group();
+  const stoneGeometry = new THREE.SphereGeometry(0.1, 6, 6);
+  const stoneMaterial = new THREE.MeshStandardMaterial({
+    map: texture,
+    roughness: 0.8,
+    opacity: opacity,
+    transparent: true
+  });
+  for (let i = 0; i < stoneCount; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const radius = innerRadius + Math.random() * (outerRadius - innerRadius);
+    const x = Math.cos(angle) * radius;
+    const z = Math.sin(angle) * radius;
+    const y = (Math.random() - 0.5) * 0.5;
+    const stone = new THREE.Mesh(stoneGeometry, stoneMaterial);
+    stone.position.set(x, y, z);
+    stone.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
+    const scale = 0.5 + Math.random() * 0.7;
+    stone.scale.set(scale, scale, scale);
+    ringGroup.add(stone);
+  }
+  return ringGroup;
+}
+
+// --- Load Saturn ring textures ---
+const rockTexture = textureLoader.load("./stone_brown.jpg");
+const rock2Texture = textureLoader.load("./cream.jpeg");
+
+// --- Create Saturn’s stone rings ---
+const saturnMesh = planets.find(p => p.key === "saturn").mesh;
+
+const saturnRing = new THREE.Group();
+saturnRing.add(createStoneRing(6.5, 10, 1000, rockTexture, 0.6));
+
+// Tilt the ring slightly
+saturnRing.rotation.x = 0.05;
+
+// Attach ring to Saturn
+saturnMesh.add(saturnRing);
+
+
+// Find Jupiter mesh
+const jupiterMesh = planets.find(p => p.key === "jupiter").mesh;
+
+// Create a merged ring for Jupiter
+const jupiterRing = new THREE.Group();
+
+jupiterRing.add(createStoneRing(6, 7.2, 500, rock2Texture, 0.3));
+
+
+// Add ring to Jupiter
+jupiterMesh.add(jupiterRing);
+
+const bgGeometry = new THREE.SphereGeometry(10000, 30, 30)
+const bgMaterial = new THREE.MeshBasicMaterial({
+  color: 0x050505,     // base dark blue
+  // color: 0x88ccff,     // base dark blue
+  side: THREE.BackSide, // render inside of sphere
+});
+document.getElementById("bgColorPicker").addEventListener("input", e=>{
+  const color = new THREE.Color(e.target.value);
+  bgMaterial.color = color;
+  scene.fog.color = color;
+  renderer.setClearColor(color);
+});
+const background = new THREE.Mesh(bgGeometry, bgMaterial);
+scene.add(background);
+scene.fog = new THREE.FogExp2(0x000011, 0.00015);
+renderer.setClearColor(new THREE.Color(0x000010)); // dark top
+
+
+const realSeconds={
+  sun_eq:2164320.0,
+  orbit:{ mercury:7600521.6, venus:19414166.4, earth:31558118.4, mars:59355072.0,
+          jupiter:374335776.0, saturn:929577600.0, uranus:2651443200.0, neptune:5199724800.0 },
+  rotation:{ mercury:5067014.4, venus:20997360.0, earth:86164.1, mars:88642.68,
+             jupiter:35730.0, saturn:38361.6, uranus:62064.0, neptune:57996.0 }
+};
+const retrograde=new Set(["venus","uranus"]);
+const angles=new Array(planets.length).fill(0);
+ const sunRotationPeriod = 2164320.0;
+// --- Simulation speed ---
+let simScale=100000;
+document.getElementById("scaleSlider").addEventListener("input",e=>{
+  simScale=parseFloat(e.target.value);
+  document.getElementById("scaleValue").innerText=simScale;
+});
+
+// --- Animation ---
+const clock=new THREE.Clock();
+
+
+// --- Animation loop ---
+function animate(){
+  requestAnimationFrame(animate);
+// --- Rotate the Sun relative to Earth's orbital position ---
+ const delta=clock.getDelta(); // seconds since last frame
+sunMesh.rotation.y += (2 * Math.PI / sunRotationPeriod) * delta * simScale;
+  // Sun spin
+//   planets[0].mesh.rotation.y += (2*Math.PI/realSeconds.sun_eq) * delta * simScale;
+
+  // Planets orbit + spin
+  for(let i=1;i<planets.length;i++){
+    const key=planets[i].key;
+    const orbitT=realSeconds.orbit[key]/simScale;
+    const spinT=realSeconds.rotation[key]/simScale;
+    const orbitSpeed=2*Math.PI/orbitT;
+    const spinSpeed=2*Math.PI/spinT*(retrograde.has(key)?-1:1);
+
+    angles[i]+=orbitSpeed*delta;
+    const {a,b,cx}=orbitsData[i-1];
+    planets[i].mesh.position.set(a*Math.cos(angles[i])+cx,0,b*Math.sin(angles[i]));
+    planets[i].mesh.rotation.y+=spinSpeed*delta;
+  }
+
+
+controls.minDistance = 5;   // how close camera can zoom in
+controls.maxDistance = 1100;  // how far camera can zoom out
+
+  // Asteroids
+// --- Asteroids motion (synced with real-time delta) ---
+stones.forEach(s => {
+  // Orbital speed (radians per real second)
+  const angularSpeed = (2 * Math.PI) / (s.periodRatio * 31558118.4); 
+  // 31558118.4 = 1 Earth year in seconds (base unit)
+
+  // Advance orbit angle with respect to elapsed time
+  s.angle += angularSpeed * delta * periodScale;
+
+  // Update position on the ellipse
+  s.mesh.position.set(
+    s.radius * Math.cos(s.angle),
+    0,
+    s.radius * Math.sin(s.angle)
+  );
+});
+
+
+  // Update labels
+  planets.forEach(p => {
+    if(p.labelDiv){
+      const distance = camera.position.distanceTo(p.mesh.position);
+      if(distance > p.labelX){
+        p.labelDiv.style.opacity = "0";
+      } else {
+        p.labelDiv.style.opacity = "1";
+        if(distance < p.labelY){
+          let scale = p.labelY / distance;
+          scale = Math.min(scale, 3);
+          p.labelDiv.style.transform = `scale(${scale})`;
+        } else {
+          p.labelDiv.style.transform = "scale(1)";
+        }
+      }
+    }
+  });
+
+  renderer.render(scene, camera);
+  labelRenderer.render(scene, camera);
+  controls.update();
+}
+animate();
+
+// --- Resize ---
+window.addEventListener('resize', ()=>{
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  labelRenderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>
