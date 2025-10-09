@@ -147,6 +147,18 @@ scene.add(starsMesh);
     requestAnimationFrame(animate);
     earthMesh.rotation.y += 0.001;
     cloudMesh.rotation.y += 0.0015;
+
+// --- Make light move with Earth ---
+  // Compute new light direction relative to Earth's rotation
+  const rotationMatrix = new THREE.Matrix4().makeRotationY(earthMesh.rotation.y);
+  const dynamicLightDir = new THREE.Vector3(5, 3, 5).applyMatrix4(rotationMatrix).normalize();
+
+  // Update shader uniform for day/night texture blending
+  earthMaterial.uniforms.lightDirection.value = dynamicLightDir;
+
+  // Also move the actual scene light (optional, for speculars etc.)
+  directionalLight.position.copy(dynamicLightDir.clone().multiplyScalar(10));
+    
     controls.update();
     renderer.render(scene, camera);
   }
@@ -161,3 +173,4 @@ scene.add(starsMesh);
 </script>
 </body>
 </html>
+
