@@ -24,7 +24,7 @@ document.body.appendChild(renderer.domElement);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 
-controls.minDistance = 15;   // how close camera can zoom in
+controls.minDistance = 17;   // how close camera can zoom in
 controls.maxDistance = 30; 
 
 // Lights
@@ -110,10 +110,10 @@ function animate() {
   requestAnimationFrame(animate);
 
   // Jupiter spins fast
-  planetMesh.rotation.y += 0.06;
+  planetMesh.rotation.y += 0.01;
 
   // Ring rotates slowly
-  mergedRing.rotation.y += 0.01;
+  mergedRing.rotation.y += 0.003;
 
   controls.update();
   renderer.render(scene, camera);
@@ -130,3 +130,4 @@ window.addEventListener('resize', () => {
 </script>
 </body>
 </html>
+
