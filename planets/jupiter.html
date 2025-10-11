@@ -24,8 +24,8 @@ document.body.appendChild(renderer.domElement);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 
-controls.minDistance = 17;   // how close camera can zoom in
-controls.maxDistance = 30; 
+controls.minDistance = 5.9;   // how close camera can zoom in
+controls.maxDistance = 35;
 
 // Lights
 const pointLight = new THREE.PointLight(0xffffff, 2, 500);
@@ -130,4 +130,5 @@ window.addEventListener('resize', () => {
 </script>
 </body>
 </html>
+
 
