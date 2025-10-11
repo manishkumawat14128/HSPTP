@@ -42,8 +42,8 @@ const sunMaterial = new THREE.MeshStandardMaterial({
   emissiveMap: fireTexture,
   emissiveIntensity: 2
 });
-controls.minDistance = 50;   // how close camera can zoom in
-controls.maxDistance = 50; 
+controls.minDistance = 11;   // how close camera can zoom in
+controls.maxDistance = 60; 
 // Sun Mesh
 const sunGeometry = new THREE.SphereGeometry(10, 18, 18);
 const sunMesh = new THREE.Mesh(sunGeometry, sunMaterial);
@@ -89,4 +89,5 @@ window.addEventListener('resize', () => {
 });
 </script>
 </body>
+
 </html>
