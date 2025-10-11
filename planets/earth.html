@@ -75,7 +75,7 @@ for (let i = 0; i < starCount; i++) {
     index: i * 3 // Store the starting index for this star's color in the color array
   });
 }
-controls.minDistance = 8;   // how close camera can zoom in
+controls.minDistance = 2.8;   // how close camera can zoom in
 controls.maxDistance = 15; 
 // Create BufferAttributes for positions and colors
 starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starPositions, 3));
@@ -173,4 +173,5 @@ scene.add(starsMesh);
 </script>
 </body>
 </html>
+
 
