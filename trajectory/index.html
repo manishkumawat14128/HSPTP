@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,6 +24,7 @@
         border: 1px solid rgba(255,255,255,0.2);
         backdrop-filter: blur(5px); /* subtle blur behind */
         box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        z-index: 1001; /* Ensure controls are above other elements */
     }
 
     #controls label {
@@ -104,6 +104,119 @@
         display: none; /* Hidden by default */
         z-index: 999;
     }
+
+    /* === Sidebar Base Styles === */
+    .sidebar {
+        position: absolute;
+        top: 20px;
+        width: 350px;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 15px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.2);
+        backdrop-filter: blur(5px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        z-index: 1000;
+        display: none; /* Hidden by default */
+        max-height: 90vh;
+        overflow-y: auto;
+        color: #e0e0e0;
+        line-height: 1.6;
+    }
+
+    .sidebar h3 {
+        color: #00ffff;
+        margin-top: 0;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+
+    .sidebar ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .sidebar li {
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 1px dashed rgba(255,255,255,0.1);
+    }
+
+    .sidebar li:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .sidebar strong {
+        color: #00ffff;
+    }
+
+    .sidebar code {
+        display: block;
+        background: rgba(0,0,0,0.3);
+        padding: 5px 8px;
+        border-radius: 5px;
+        font-family: monospace;
+        font-size: 0.9em;
+        margin-top: 5px;
+        color: #e0e0e0;
+        overflow-x: auto;
+    }
+
+    /* === Specific Sidebar Positioning === */
+    #physicsSidebar {
+        right: 20px;
+    }
+
+    #explanationSidebar {
+        right: 400px; /* Positioned to the left of physicsSidebar + some margin */
+    }
+
+    /* === Button Base Styles === */
+    .toggle-button {
+        position: absolute;
+        top: 20px;
+        background: #00ffff;
+        color: black;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        z-index: 1002;
+        box-shadow: 0 4px 10px rgba(0,255,255,0.4);
+        white-space: nowrap; /* Prevent text wrapping */
+    }
+
+    .toggle-button:hover {
+        background: #00e6e6;
+        box-shadow: 0 6px 15px rgba(0,255,255,0.6);
+    }
+
+    /* === Specific Button Positioning === */
+    #togglePhysics {
+        right: 20px;
+    }
+
+    #toggleExplanation {
+        right: 200px; /* Positioned to the left of togglePhysics */
+    }
+
+    /* Scrollbars for sidebars */
+    .sidebar::-webkit-scrollbar {
+        width: 8px;
+    }
+    .sidebar::-webkit-scrollbar-thumb {
+        background-color: rgba(0,255,255,0.5);
+        border-radius: 4px;
+    }
+    .sidebar::-webkit-scrollbar-track {
+        background-color: rgba(255,255,255,0.1);
+        border-radius: 4px;
+    }
+
 </style>
 
 </head>
@@ -134,6 +247,51 @@
     </div>
     <canvas id="thetaGraph" width="300" height="300"></canvas>
     <div id="thetaValue">Theta Value: 0 rad | 0°</div>
+</div>
+
+<button id="toggleExplanation" class="toggle-button">Show Explanation</button>
+<button id="togglePhysics" class="toggle-button">Show Physics Info</button>
+
+
+<div id="explanationSidebar" class="sidebar">
+    <h3>Simulation Explanation:</h3>
+    <p id="explanationContent">
+        This simulation visually demonstrates the principles of orbital mechanics governed by Newtonian gravity. At its core, it models the two-body problem, specifically the interaction between a massive central star (the Sun) and a much smaller orbiting planet (the Earth). By adjusting parameters like the masses of the Sun and Earth, their initial distance, and the Earth's initial tangential velocity, you can observe fundamental concepts such as the conservation of angular momentum and specific orbital energy. The simulation calculates key orbital characteristics like eccentricity (e), semi-major axis (a), and semi-minor axis (b). Eccentricity, a measure of how much an orbit deviates from a perfect circle, is crucial: an 'e' value less than 1 results in an elliptical orbit (like planets in our solar system), 'e' equal to 1 signifies a parabolic escape trajectory, and 'e' greater than 1 represents a hyperbolic, unbound path. The simulation dynamically draws the resulting orbital path, tracks the planet's position and velocity, and even includes a polar graph illustrating its angular displacement (theta) and radial distance. A collision detection system highlights when the planet's path would intersect the Sun, demonstrating the dramatic consequences of insufficient orbital velocity, pausing the simulation and resetting parameters for a new exploration.
+    </p>
+</div>
+
+<div id="physicsSidebar" class="sidebar">
+    <h3>Physics Principles & Formulas:</h3>
+    <ul>
+        <li>
+            <strong>Newton's Law of Universal Gravitation:</strong> <code>F = G * M * m / r^2</code><br>
+            This fundamental force dictates the gravitational attraction between the Sun and Earth, underlying all orbital motion.
+        </li>
+        <li>
+            <strong>Specific Angular Momentum (h):</strong> <code>h = r * v_tangential</code><br>
+            A conserved quantity in central force motion, explaining why the planet speeds up closer to the Sun and slows down farther away.
+        </li>
+        <li>
+            <strong>Specific Orbital Energy (ε):</strong> <code>ε = (1/2) * v^2 - G * M / r</code><br>
+            The total energy per unit mass, also conserved, which combines kinetic and potential energy to define the orbit's overall energy state.
+        </li>
+        <li>
+            <strong>Orbital Eccentricity (e):</strong> <code>e = sqrt(1 + (2 * ε * h^2) / (G^2 * M^2))</code><br>
+            Determines the shape of the orbit: <code>e &lt; 1</code> for an ellipse, <code>e = 1</code> for a parabola, and <code>e &gt; 1</code> for a hyperbola.
+        </li>
+        <li>
+            <strong>Semi-major Axis (a):</strong> <code>a = -G * M / (2 * ε)</code> (for ellipses)<br>
+            Defines the overall size of an elliptical orbit. For parabolic/hyperbolic, it's a parameter related to curvature.
+        </li>
+        <li>
+            <strong>Semi-minor Axis (b):</strong> <code>b = a * sqrt(1 - e^2)</code> (for ellipses)<br>
+            Defines the 'width' of an elliptical orbit. For hyperbolic, it's the semi-conjugate axis.
+        </li>
+        <li>
+            <strong>Kepler's Third Law (Orbital Period T):</strong> <code>T = 2 * π * sqrt(a^3 / (G * M))</code><br>
+            Relates the orbital period to the semi-major axis and the central mass for elliptical orbits.
+        </li>
+    </ul>
 </div>
 
 <div id="messageOverlay"></div>
@@ -231,7 +389,7 @@ composer.addPass(new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window
   bumpScale: 0.05,
   roughness: 1,
   metalness: 0
-    
+
   });
 // Earth
 const earth1 = new THREE.SphereGeometry(0.5,32,32); // Earth's visual radius is 0.5
@@ -542,7 +700,40 @@ window.addEventListener("resize",()=>{
     renderer.setSize(window.innerWidth,window.innerHeight);
     composer.setSize(window.innerWidth, window.innerHeight); // Update composer size too
 });
+
+// Physics Sidebar Toggle Logic
+const physicsSidebar = document.getElementById("physicsSidebar");
+const togglePhysicsBtn = document.getElementById("togglePhysics");
+
+togglePhysicsBtn.addEventListener("click", () => {
+    if (physicsSidebar.style.display === "block") {
+        physicsSidebar.style.display = "none";
+        togglePhysicsBtn.innerText = "Show Physics Info";
+    } else {
+        physicsSidebar.style.display = "block";
+        togglePhysicsBtn.innerText = "Hide Physics Info";
+        // Hide explanation sidebar if physics is shown to avoid overlap
+        explanationSidebar.style.display = "none";
+        toggleExplanationBtn.innerText = "Show Explanation";
+    }
+});
+
+// Explanation Sidebar Toggle Logic (New)
+const explanationSidebar = document.getElementById("explanationSidebar");
+const toggleExplanationBtn = document.getElementById("toggleExplanation");
+
+toggleExplanationBtn.addEventListener("click", () => {
+    if (explanationSidebar.style.display === "block") {
+        explanationSidebar.style.display = "none";
+        toggleExplanationBtn.innerText = "Show Explanation";
+    } else {
+        explanationSidebar.style.display = "block";
+        toggleExplanationBtn.innerText = "Hide Explanation";
+        // Hide physics sidebar if explanation is shown to avoid overlap
+        physicsSidebar.style.display = "none";
+        togglePhysicsBtn.innerText = "Show Physics Info";
+    }
+});
 </script>
 </body>
-
 </html>
