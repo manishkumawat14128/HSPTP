@@ -355,12 +355,21 @@
   </div>
 
 <script type="module">
-import * as THREE from "https://cdn.skypack.dev/three@0.129.0";
-import { OrbitControls } from "https://cdn.skypack.dev/three@0.129.0/examples/jsm/controls/OrbitControls.js";
-import { CSS2DRenderer, CSS2DObject } from "https://cdn.skypack.dev/three@0.129.0/examples/jsm/renderers/CSS2DRenderer.js";
-import { EffectComposer } from 'https://cdn.skypack.dev/three@0.129.0/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from 'https://cdn.skypack.dev/three@0.129.0/examples/jsm/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'https://cdn.skypack.dev/three@0.129.0/examples/jsm/postprocessing/UnrealBloomPass.js';
+// import * as THREE from "https://cdn.skypack.dev/three@0.129.0";
+// import { OrbitControls } from "https://cdn.skypack.dev/three@0.129.0/examples/jsm/controls/OrbitControls.js";
+// import { CSS2DRenderer, CSS2DObject } from "https://cdn.skypack.dev/three@0.129.0/examples/jsm/renderers/CSS2DRenderer.js";
+// import { EffectComposer } from 'https://cdn.skypack.dev/three@0.129.0/examples/jsm/postprocessing/EffectComposer.js';
+// import { RenderPass } from 'https://cdn.skypack.dev/three@0.129.0/examples/jsm/postprocessing/RenderPass.js';
+// import { UnrealBloomPass } from 'https://cdn.skypack.dev/three@0.129.0/examples/jsm/postprocessing/UnrealBloomPass.js';
+import * as THREE from "https://unpkg.com/three@0.129.0/build/three.module.js?module";
+import { OrbitControls } from "https://unpkg.com/three@0.129.0/examples/jsm/controls/OrbitControls.js?module";
+import {
+  CSS2DRenderer,
+  CSS2DObject
+} from "https://unpkg.com/three@0.129.0/examples/jsm/renderers/CSS2DRenderer.js?module";
+import { EffectComposer } from "https://unpkg.com/three@0.129.0/examples/jsm/postprocessing/EffectComposer.js?module";
+import { RenderPass } from "https://unpkg.com/three@0.129.0/examples/jsm/postprocessing/RenderPass.js?module";
+import { UnrealBloomPass } from "https://unpkg.com/three@0.129.0/examples/jsm/postprocessing/UnrealBloomPass.js?module";
 
 // --- Scene & Camera ---
 const scene = new THREE.Scene();
@@ -1435,3 +1444,4 @@ window.addEventListener('resize', ()=>{
 </script>
 </body>
 </html>
+
