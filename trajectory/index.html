@@ -319,6 +319,8 @@ const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
+     scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+scene.add(new THREE.PointLight(0xffffff, 2, 3000));
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
@@ -431,7 +433,14 @@ function computeOrbit(M, m, G, rmin, vo){
     if(e===1) a=h*h/(G*M);
     return {h, eps, e, a};
 }
+// 1. Create the light
+const earthInternalLight = new THREE.PointLight(0xffddaa, 10, 20); 
 
+// 2. Add the light TO the earth (this makes it follow the earth automatically)
+earth.add(earthInternalLight); 
+
+// 3. Set position to 0,0,0 (this is the center of the Earth)
+earthInternalLight.position.set(0, 0, 0);
 function createOrbit(a,e,numPoints=500){
     const points = [];
     if(e<1){
@@ -744,4 +753,5 @@ toggleExplanationBtn.addEventListener("click", () => {
 </script>
 </body>
 </html>
+
 
