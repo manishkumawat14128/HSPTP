@@ -46,7 +46,38 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="dns-prefetch" href="https://fonts.googleapis.com">
 
-
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Our Solar View",
+    "url": "https://oursolarview.vercel.app/",
+    "description": "Interactive 3D solar system explorer. Explore planets, moons, and orbits in real time — free, no download, runs in any browser.",
+    "applicationCategory": "EducationalApplication",
+    "genre": "Astronomy",
+    "operatingSystem": "Any",
+    "browserRequirements": "Requires WebGL support",
+    "inLanguage": "en",
+    "isAccessibleForFree": true,
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "publisher": {
+      "@type": "Person",
+      "name": "Manish Kumawat",
+      "url": "https://oursolarview.vercel.app/"
+    },
+    "author": {
+      "@type": "Person",
+      "name": "Manish Kumawat"
+    },
+    "image": "https://oursolarview.vercel.app/preview-image.jpg",
+    "screenshot": "https://oursolarview.vercel.app/preview-image.jpg",
+    "keywords": "solar system, 3D, interactive, planets, astronomy, space, browser"
+  }
+  </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@400;600&display=swap"
         rel="stylesheet">
@@ -58,8 +89,7 @@
             overflow-x: hidden;
             background-image: url('bg.jpg');
             background-size: contain;
-            /* background-size: cover; */
-            background-repeat: none;
+            background-repeat: repeat;
         }
 
         .font-orbitron {
