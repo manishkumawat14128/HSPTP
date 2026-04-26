@@ -1,4 +1,4 @@
-<img width="906" height="671" alt="Screenshot 2026-04-26 132818" src="https://github.com/user-attachments/assets/3b40572b-d804-4331-91ea-15c4a71618e5" />
+
 # 🌌 HSPTP — Heliocentric Space & Trajectory Physics Platform
 
 <div align="center">
