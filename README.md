@@ -113,7 +113,8 @@ Deployed on Vercel with automatic CI from the `main` branch.
 
 ## 📸 Preview
 
-> *(Add a GIF or screenshot of the solar system and trajectory modules here for maximum impact)*
+> ![Uploading Screenshot 2026-04-26 132818.png…]()
+
 
 ---
 
