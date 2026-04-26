@@ -1,3 +1,4 @@
+<img width="1604" height="895" alt="Screenshot 2026-04-26 144212" src="https://github.com/user-attachments/assets/63c58da3-25b0-4991-ab81-3ea230853473" />
 
 # 🌌 HSPTP — Heliocentric Space & Trajectory Physics Platform
 
@@ -130,11 +131,7 @@ Combining a passion for astrophysics and frontend engineering to build tools tha
 
 ---
 
-## 📄 License
 
-This project is open source. Feel free to explore, learn, and build upon it.
-
----
 
 <div align="center">
 
