@@ -1,10 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Soar System - Explorer</title>
+
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Primary SEO -->
+  <title>Our Solar View — Interactive 3D Solar System Explorer</title>
+  <meta name="description" content="Explore planets, moons, and stars in a stunning real-time 3D solar system — no download needed. Interactive space experience built for the browser.">
+  <meta name="keywords" content="3D solar system, interactive space explorer, planets browser, solar system simulation, astronomy web app, space education, solar system 3D, planets online, explore space browser">
+  <meta name="author" content="Manish Kumawat">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <link rel="canonical" href="https://oursolarview.vercel.app/">
+
+  <!-- ============================================================
+    OPEN GRAPH (Facebook, LinkedIn, WhatsApp, Discord)
+  ============================================================ -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://oursolarview.vercel.app/">
+  <meta property="og:site_name" content="Our Solar View">
+  <meta property="og:title" content="Our Solar View — Interactive 3D Solar System Explorer">
+  <meta property="og:description" content="Travel through space in real time. Explore every planet, moon, and orbit in a free interactive 3D experience — right in your browser.">
+  <meta property="og:image" content="https://oursolarview.vercel.app/preview-image.jpg">
+  <meta property="og:image:secure_url" content="https://oursolarview.vercel.app/preview-image.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Our Solar View — 3D planets orbiting the sun in a browser">
+  <meta property="og:locale" content="en_US">
+
+
+  <meta name="theme-color" content="#000000">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Solar View">
+  <link rel="manifest" href="/manifest.json">
+
+  <!-- ============================================================
+    FAVICON & ICONS
+  ============================================================ -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="shortcut icon" href="/favicon.ico">
+
+  <!-- ============================================================
+    PERFORMANCE
+  ============================================================ -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+
+  <!-- ============================================================
+    JSON-LD STRUCTURED DATA (Rich Results / Google Knowledge Panel)
+  ============================================================ -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Our Solar View",
+    "url": "https://oursolarview.vercel.app/",
+    "description": "Interactive 3D solar system explorer. Explore planets, moons, and orbits in real time — free, no download, runs in any browser.",
+    "applicationCategory": "EducationalApplication",
+    "genre": "Astronomy",
+    "operatingSystem": "Any",
+    "browserRequirements": "Requires WebGL support",
+    "inLanguage": "en",
+    "isAccessibleForFree": true,
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "publisher": {
+      "@type": "Person",
+      "name": "Manish Kumawat",
+      "url": "https://oursolarview.vercel.app/"
+    },
+        "author": {
+    "@type": "Person",
+    "name": "Manish Kumawat"
+  }
+
+    "image": "https://oursolarview.vercel.app/preview-image.jpg",
+    "screenshot": "https://oursolarview.vercel.app/preview-image.jpg",
+    "keywords": "solar system, 3D, interactive, planets, astronomy, space, browser"
+  }
+  </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@400;600&display=swap"
         rel="stylesheet">
@@ -17,7 +100,7 @@
             background-image: url('bg.jpg');
             background-size: contain;
             /* background-size: cover; */
-            background-repeat: none;
+            background-repeat: no-repeat;
         }
 
         .font-orbitron {
